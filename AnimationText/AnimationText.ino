@@ -1,7 +1,6 @@
+#include <MD_Parola.h>
 #include <MD_MAX72xx.h>
 #include <SPI.h>
-
-#define  delay_t  50  // in milliseconds
 
 #define HARDWARE_TYPE MD_MAX72XX::FC16_HW
 #define MAX_DEVICES 4
@@ -10,41 +9,59 @@
 // CLK Pin  > 13 SCK
 // Data Pin > 11 MOSI
 
-#define CS_PIN    8
+//#define CLK_PIN   4
+//#define DATA_PIN  2
+#define CS_PIN      8
 
 // Hardware SPI connection
-MD_MAX72XX mx = MD_MAX72XX(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
+MD_Parola myDisplay = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
+// Arbitrary output pins
+//MD_Parola myDisplay = MD_Parola(HARDWARE_TYPE, DATA_PIN, CLK_PIN, CS_PIN, MAX_DEVICES);
 
-byte heart[8] = {0x00, 0x66, 0xFF, 0xFF, 0xFF, 0x7E, 0x3C, 0x18};
-byte face[8] = {0x3C, 0x42, 0xA5, 0x81, 0xA5, 0x99, 0x42, 0x3C};
-byte face2[8] = {0x00, 0x24, 0x24, 0x24, 0x00, 0x42, 0x3C, 0x00};
-byte arrow[8] = {0x18, 0x0C, 0x06, 0xFF, 0xFF, 0x06, 0x0C, 0x18};
+int i = 0;
 
-void setup() {  
-  mx.begin();
-  mx.control(MD_MAX72XX::INTENSITY, 0);
-  mx.clear();
-  }
-
-void loop() {
-  drawShape();
+textEffect_t texteffect[] = {
+  PA_WIPE,
+  PA_WIPE_CURSOR,
+  PA_OPENING_CURSOR,
+  PA_CLOSING_CURSOR,
+  PA_BLINDS,
+  PA_MESH,
+  PA_OPENING,
+  PA_CLOSING,
+  PA_SCAN_VERT,
+  PA_DISSOLVE,
+  PA_RANDOM,
+  PA_PRINT,
+  PA_SCROLL_RIGHT,
+  PA_SCROLL_LEFT,
+  PA_GROW_UP,
+  PA_GROW_DOWN,
+  PA_SCROLL_UP,
+  PA_SCROLL_DOWN,
+  PA_SCROLL_UP_RIGHT,
+  PA_SCROLL_UP_LEFT,
+  PA_SCROLL_DOWN_RIGHT,
+  PA_SCROLL_DOWN_LEFT,
+};
+void setup() {
+  myDisplay.begin();
+  myDisplay.setIntensity(0);
+  myDisplay.setTextAlignment(PA_CENTER);
+  myDisplay.setSpeed(100);
+  myDisplay.setPause(1000);
+  myDisplay.displayClear();
 }
 
-void drawShape() {
-  for (int i = 0; i <= 7; i++) {
-    mx.setRow(0, 0, i, heart[i]);
+void loop() {
+  if (myDisplay.displayAnimate()) {
+    if (i < sizeof(texteffect)) {
+      i++;
+    }
+    else {
+      i = 0;
+    }
+    myDisplay.displayText("Hello", myDisplay.getTextAlignment(), myDisplay.getSpeed(), myDisplay.getPause(), texteffect[i], texteffect[i]);
+    myDisplay.displayReset();
   }
-  delay(delay_t);
-  for (int i = 0; i <= 7; i++) {
-    mx.setRow(1, 1, i, face[i]);
-  }
-  delay(delay_t);
-  for (int i = 0; i <= 7; i++) {
-    mx.setRow(2, 2, i, face2[i]);
-  }
-  delay(delay_t);
-  for (int i = 0; i <= 7; i++) {
-    mx.setRow(3, 3, i, arrow[i]);
-  }
-  delay(delay_t);
 }
